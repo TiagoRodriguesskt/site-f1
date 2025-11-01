@@ -172,7 +172,8 @@ let countdownInterval = null; // Variável para controlar o timer
 // 1. Função que busca a data da próxima corrida
 async function fetchNextRace() {
     // API da Ergast (agora com HTTPS e sem proxy!)
-    const raceApiUrl = 'https://ergast.com/api/f1/current/next.json';
+    // API da Ergast (agora com HTTPS e sem proxy!)
+const raceApiUrl = 'https://ergast.com/api/f1/2026/next.json';
 
     try {
         // FAZEMOS O FETCH DIRETAMENTE NA API DE CORRIDAS
@@ -308,4 +309,5 @@ if (audio.muted) {
   iconOn.style.display = "none";
   iconOff.style.display = "block";
 }
+
 
