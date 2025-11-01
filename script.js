@@ -1,178 +1,166 @@
 /* --- FUNÇÃO PRINCIPAL DE BUSCAR NOTÍCIAS (VERSÃO 3.0 - Híbrida) --- */
 async function fetchF1News() {
-  const feedUrl = "https://www.formula1.com/en/latest/all.xml";
-  const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-    feedUrl
-  )}`;
+    // API (via proxy) para o feed de notícias
+    const feedUrl = 'https://www.formula1.com/en/latest/all.xml';
+    const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`;
+    
+    const container = document.getElementById('feed-noticias');
+    const descParser = new DOMParser(); // Parser para o HTML da descrição
 
-  const container = document.getElementById("feed-noticias");
-  const descParser = new DOMParser();
+    try {
+        container.innerHTML = '<p class="loading">Carregando as últimas notícias da F1...</p>';
+        const response = await fetch(apiUrl);
 
-  try {
-    container.innerHTML =
-      '<p class="loading">Carregando as últimas notícias da F1...</p>';
-    const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Erro HTTP! Status: ${response.status}`);
+        }
 
-    if (!response.ok) {
-      throw new Error(`Erro HTTP! Status: ${response.status}`);
-    }
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "application/xml");
 
-    const xmlText = await response.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+        // Verifica se o XML é válido
+        const errorNode = xmlDoc.querySelector("parsererror");
+        if (errorNode) {
+            throw new Error("Erro ao interpretar o feed RSS da F1.");
+        }
 
-    const errorNode = xmlDoc.querySelector("parsererror");
-    if (errorNode) {
-      throw new Error("Erro ao interpretar o feed RSS da F1.");
-    }
+        const items = xmlDoc.querySelectorAll("item");
+        container.innerHTML = ''; // Limpa o "Carregando..."
 
-    const items = xmlDoc.querySelectorAll("item");
-    container.innerHTML = "";
+        if (items.length === 0) {
+            container.innerHTML = '<p class="loading">Nenhuma notícia encontrada no feed.</p>';
+            return;
+        }
 
-    if (items.length === 0) {
-      container.innerHTML =
-        '<p class="loading">Nenhuma notícia encontrada no feed.</p>';
-      return;
-    }
+        // Loop por cada notícia no RSS
+        items.forEach(item => {
+            // 1. Extrai TUDO do RSS
+            const title = item.querySelector("title")?.textContent || "Título Indisponível";
+            const link = item.querySelector("link")?.textContent || "#";
+            const descriptionHTML = item.querySelector("description")?.textContent || "";
 
-    items.forEach((item) => {
-      // 1. Extrai TUDO do RSS
-      const title =
-        item.querySelector("title")?.textContent || "Título Indisponível";
-      const link = item.querySelector("link")?.textContent || "#";
-      const descriptionHTML =
-        item.querySelector("description")?.textContent || "";
+            // 2. Processa a descrição do RSS para pegar a imagem e o resumo
+            const descDoc = descParser.parseFromString(descriptionHTML, "text/html");
+            const imgElement = descDoc.querySelector("img");
+            
+            const imageUrl = imgElement ? imgElement.src : 'https://upload.wikimedia.org/wikipedia/commons/3/3f/F1_logo.svg'; // Imagem de fallback
+            const summaryText = descDoc.body.textContent || "(Sem resumo disponível)"; // Texto de fallback
 
-      const descDoc = descParser.parseFromString(descriptionHTML, "text/html");
-      const imgElement = descDoc.querySelector("img");
-
-      const imageUrl = imgElement
-        ? imgElement.src
-        : "https://upload.wikimedia.org/wikipedia/commons/3/3f/F1_logo.svg";
-      const summaryText = descDoc.body.textContent || "(Sem resumo disponível)"; // Texto de fallback
-
-      // 2. Cria o item da lista
-      const itemHtml = document.createElement("div");
-      itemHtml.classList.add("noticia-item");
-
-      itemHtml.innerHTML = `
+            // 3. Cria o item da lista
+            const itemHtml = document.createElement('div');
+            itemHtml.classList.add('noticia-item');
+            
+            itemHtml.innerHTML = `
                 <h2 class="clickable-title">
                     ${title}
                 </h2>
                 <p>${summaryText.substring(0, 150)}...</p> 
             `;
 
-      // 3. Adiciona o clique
-      itemHtml.addEventListener("click", () => {
-        // Passa TODOS os dados do RSS para o modal
-        openModal(title, imageUrl, summaryText, link);
-      });
+            // 4. Adiciona o clique para abrir o Modal
+            itemHtml.addEventListener('click', () => {
+                // Passa TODOS os dados do RSS para o modal
+                openModal(title, imageUrl, summaryText, link); 
+            });
+            
+            container.appendChild(itemHtml);
+        });
 
-      container.appendChild(itemHtml);
-    });
-  } catch (error) {
-    console.error("Erro detalhado ao carregar notícias:", error);
-    container.innerHTML = `<p class="loading" style="color: red;">Ocorreu um erro ao carregar as notícias. (Rede ou Proxy falhou).</p>`;
-  }
+    } catch (error) {
+        console.error('Erro detalhado ao carregar notícias:', error);
+        container.innerHTML = `<p class="loading" style="color: red;">Ocorreu um erro ao carregar as notícias. (Rede ou Proxy falhou).</p>`;
+    }
 }
 
 // Recarrega as notícias a cada 5 minutos
 setInterval(fetchF1News, 300000);
 
+
 /* --- LÓGICA DO MODAL (VERSÃO 3.0 - Híbrida / Robusta) --- */
-const modalOverlay = document.getElementById("modal-overlay");
-const modalTitle = document.getElementById("modal-title");
-const modalImage = document.getElementById("modal-image");
-const modalText = document.getElementById("modal-text");
-const modalLink = document.getElementById("modal-link");
-const modalCloseBtn = document.getElementById("modal-close-btn");
 
-// A função agora recebe os dados do RSS como 'fallback'
+// Pega os elementos do Modal
+const modalOverlay = document.getElementById('modal-overlay');
+const modalTitle = document.getElementById('modal-title');
+const modalImage = document.getElementById('modal-image');
+const modalText = document.getElementById('modal-text');
+const modalLink = document.getElementById('modal-link');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+
+// Função para ABRIR o Modal
 async function openModal(title, imageUrl, summaryText, newsLink) {
-  modalOverlay.classList.add("active"); // Mostra o overlay
+    modalOverlay.classList.add('active'); // Mostra o overlay
 
-  // 1. Preenche o modal IMEDIATAMENTE com os dados do RSS
-  modalTitle.textContent = title;
-  modalImage.src = imageUrl;
-  modalImage.alt = title;
-  modalImage.style.display = "block";
-  modalLink.href = newsLink;
+    // 1. Preenche o modal IMEDIATAMENTE com os dados do RSS
+    modalTitle.textContent = title;
+    modalImage.src = imageUrl;
+    modalImage.alt = title;
+    modalImage.style.display = 'block';
+    modalLink.href = newsLink;
+    
+    // 2. Mostra o feedback de carregamento para o texto
+    modalText.innerHTML = '<p style="font-style: italic;">Carregando matéria completa...</p>';
 
-  // 2. Mostra o feedback de carregamento para o texto
-  modalText.innerHTML =
-    '<p style="font-style: italic;">Carregando matéria completa...</p>';
+    try {
+        // 3. TENTA buscar a matéria completa (Scraping)
+        const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(newsLink)}`;
+        const response = await fetch(proxiedUrl);
 
-  try {
-    // 3. TENTA buscar a matéria completa (Scraping)
-    const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-      newsLink
-    )}`;
-    const response = await fetch(proxiedUrl);
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`); // Falha na rede
+        }
 
-    if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`); // Falha na rede
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, "text/html");
+
+        // 4. TENTA encontrar o corpo do artigo
+        // (Este é o seletor frágil que pode quebrar)
+        const articleBody = doc.querySelector('.f1-article--body'); 
+
+        if (articleBody) {
+            // 5. SUCESSO! Limpa o corpo e insere no modal
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = articleBody.innerHTML;
+            
+            // Remove links internos, botões, etc.
+            tempDiv.querySelectorAll('a[href^="/"], button, .f-modal, .f1-button').forEach(el => el.remove());
+            
+            modalText.innerHTML = tempDiv.innerHTML;
+        } else {
+            // 6. FALHA (Não achou o seletor)
+            throw new Error("Não foi possível encontrar o corpo do artigo (layout mudou).");
+        }
+
+    } catch (error) {
+        // 7. SE QUALQUER COISA FALHAR (Rede ou Scraping)
+        console.warn('Falha ao buscar matéria completa, usando resumo:', error.message);
+        // Não mostramos erro! Apenas usamos o resumo do RSS
+        modalText.innerHTML = `<p>${summaryText}</p>`;
     }
-
-    const htmlText = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlText, "text/html");
-
-    // 4. TENTA encontrar o corpo do artigo
-    // (Este é o seletor frágil que pode quebrar)
-    const articleBody = doc.querySelector(".f1-article--body");
-
-    if (articleBody) {
-      // 5. SUCESSO! Limpa o corpo e insere no modal
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = articleBody.innerHTML;
-
-      // Remove links internos, botões, etc.
-      tempDiv
-        .querySelectorAll('a[href^="/"], button, .f-modal, .f1-button')
-        .forEach((el) => el.remove());
-
-      modalText.innerHTML = tempDiv.innerHTML;
-    } else {
-      // 6. FALHA (Não achou o seletor '.f1-article--body')
-      throw new Error(
-        "Não foi possível encontrar o corpo do artigo (layout mudou)."
-      );
-    }
-  } catch (error) {
-    // 7. SE QUALQUER COISA FALHAR (Rede ou Scraping)
-    console.warn(
-      "Falha ao buscar matéria completa, usando resumo:",
-      error.message
-    );
-    // Não mostramos erro! Apenas usamos o resumo do RSS
-    modalText.innerHTML = `<p>${summaryText}</p>`;
-  }
 }
 
+// Função para FECHAR o Modal
 function closeModal() {
-  modalOverlay.classList.remove("active");
-  modalTitle.textContent = "";
-  modalImage.src = "";
-  modalImage.alt = "";
-  modalText.innerHTML = "";
-  modalImage.style.display = "none";
+    modalOverlay.classList.remove('active');
+    // Limpa o conteúdo para a próxima vez
+    modalTitle.textContent = "";
+    modalImage.src = "";
+    modalImage.alt = "";
+    modalText.innerHTML = "";
+    modalImage.style.display = 'none';
 }
 
-modalCloseBtn.addEventListener("click", closeModal);
-modalOverlay.addEventListener("click", (event) => {
-  if (event.target === modalOverlay) {
-    closeModal();
-  }
+// Adiciona os "escutadores" de clique para fechar
+modalCloseBtn.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (event) => {
+    // Fecha o modal APENAS se o clique for no fundo (overlay)
+    if (event.target === modalOverlay) {
+        closeModal();
+    }
 });
 
-/* --- LÓGICA DA CONTAGEM REGRESSIVA (VERSÃO 3.0 - 100% AUTOMÁTICA) --- */
 
-let countdownInterval = null; // Variável para controlar o timer
-
-// 1. Função que busca a data da próxima corrida
-async function fetchNextRace() {
-    // API da Ergast (agora com HTTPS e sem proxy!)
-    // API da Ergast (agora com HTTPS e sem proxy!)
 /* --- LÓGICA DA CONTAGEM REGRESSIVA (VERSÃO 4.0 - AUTOMÁTICA CORRETA) --- */
 
 let countdownInterval = null; // Variável para controlar o timer
@@ -181,6 +169,7 @@ let countdownInterval = null; // Variável para controlar o timer
 async function fetchNextRace() {
     
     // API da Ergast (agora com HTTPS e apontando para 2025)
+    // ESTA É A CORREÇÃO FINAL
     const raceApiUrl = 'https://ergast.com/api/f1/2025/next.json';
     
     try {
@@ -242,7 +231,7 @@ function startCountdown(targetDate) {
 
         if (distance < 0) {
             clearInterval(countdownInterval);
-            titleEl.textContent = 'A CORRIDA ESTÁ ACONTECENDO!';
+            titleEl.textContent = 'A CORRIDA ESTÁ ACONTECANDO!';
             countdownEl.innerHTML = '<p style="font-size: 1.2em; color: var(--rb-red); font-weight: 700;">É HORA DAS LUZES SE APAGAREM!</p>';
             return;
         }
@@ -265,54 +254,48 @@ function formatTime(time) {
 }
 
 // 4. Inicia tudo!
-fetchNextRace();
-// Inicia o feed de notícias
-fetchF1News();
+fetchNextRace(); // Inicia o contador
+fetchF1News();  // Inicia o feed de notícias
 
-/* --- LÓGICA DO BOTÃO DE MUDO (VERSÃO 2.1) --- */
-const audio = document.getElementById("bg-audio");
-const muteBtn = document.getElementById("mute-btn");
-const iconOn = document.getElementById("icon-on");
-const iconOff = document.getElementById("icon-off");
+
+/* --- LÓGICA DO BOTÃO DE MUDO (VERSÃO 2.1 - COM VOLUME) --- */
+const audio = document.getElementById('bg-audio');
+const muteBtn = document.getElementById('mute-btn');
+const iconOn = document.getElementById('icon-on');
+const iconOff = document.getElementById('icon-off');
 
 audio.volume = 0.2; // Volume em 20%
 let audioReady = false;
 
-audio
-  .play()
-  .then(() => {
+audio.play().then(() => {
     audioReady = true;
-  })
-  .catch((e) => {
+}).catch(e => {
     console.warn("Autoplay mudo falhou, mas tudo bem.");
-  });
+});
 
 async function toggleMute() {
-  if (!audioReady) {
-    try {
-      await audio.play();
-      audioReady = true;
-    } catch (err) {
-      console.error("Usuário clicou, mas o áudio falhou:", err);
-      return;
+    if (!audioReady) {
+        try {
+            await audio.play();
+            audioReady = true;
+        } catch (err) {
+            console.error("Usuário clicou, mas o áudio falhou:", err);
+            return;
+        }
     }
-  }
-  if (audio.muted) {
-    audio.muted = false;
-    iconOn.style.display = "block";
-    iconOff.style.display = "none";
-  } else {
-    audio.muted = true;
-    iconOn.style.display = "none";
-    iconOff.style.display = "block";
-  }
+    if (audio.muted) {
+        audio.muted = false;
+        iconOn.style.display = 'block';
+        iconOff.style.display = 'none';
+    } else {
+        audio.muted = true;
+        iconOn.style.display = 'none';
+        iconOff.style.display = 'block';
+    }
 }
-muteBtn.addEventListener("click", toggleMute);
+muteBtn.addEventListener('click', toggleMute);
 
 if (audio.muted) {
-  iconOn.style.display = "none";
-  iconOff.style.display = "block";
+    iconOn.style.display = 'none';
+    iconOff.style.display = 'block';
 }
-
-
-
