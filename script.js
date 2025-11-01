@@ -173,40 +173,47 @@ let countdownInterval = null; // Variável para controlar o timer
 async function fetchNextRace() {
     // API da Ergast (agora com HTTPS e sem proxy!)
     // API da Ergast (agora com HTTPS e sem proxy!)
-const raceApiUrl = 'https://ergast.com/api/f1/2026/next.json';
+/* --- LÓGICA DA CONTAGEM REGRESSIVA (VERSÃO 4.0 - AUTOMÁTICA CORRETA) --- */
 
+let countdownInterval = null; // Variável para controlar o timer
+
+// 1. Função que busca a data da próxima corrida
+async function fetchNextRace() {
+    
+    // API da Ergast (agora com HTTPS e apontando para 2025)
+    const raceApiUrl = 'https://ergast.com/api/f1/2025/next.json';
+    
     try {
         // FAZEMOS O FETCH DIRETAMENTE NA API DE CORRIDAS
         const response = await fetch(raceApiUrl); 
-
+        
         if (!response.ok) throw new Error('Não foi possível buscar o calendário de corridas.');
-
-        // A Ergast retorna JSON, então não precisamos converter de texto
+        
         const data = await response.json(); 
 
         // Pega os dados da corrida
         const raceInfo = data.MRData.RaceTable.Races[0];
         if (!raceInfo) {
-            // Isso acontece se a temporada já acabou
+            // Se a temporada de 2025 realmente tiver acabado
             throw new Error('Não há mais corridas nesta temporada.');
         }
 
         const raceName = raceInfo.raceName;
-        const raceDate = raceInfo.date; // Ex: "2025-11-09"
+        const raceDate = raceInfo.date; // Ex: "2025-11-07"
         const raceTime = raceInfo.time; // Ex: "17:00:00Z" (Formato UTC/Zulu)
 
         // Combina data e hora e cria um objeto Date
         const targetDateTime = new Date(`${raceDate}T${raceTime}`);
-
+        
         // Atualiza o nome da corrida no HTML
         document.getElementById('race-name').textContent = raceName;
-
+        
         // Inicia o contador!
         startCountdown(targetDateTime);
 
     } catch (error) {
         console.error('Erro ao buscar próxima corrida:', error);
-
+        
         // SE A TEMPORADA TIVER ACABADO, VAI MOSTRAR ISSO:
         document.getElementById('race-name').textContent = 'Temporada Concluída!';
         document.getElementById('countdown').innerHTML = ''; // Limpa os "00 00 00 00"
@@ -259,9 +266,6 @@ function formatTime(time) {
 
 // 4. Inicia tudo!
 fetchNextRace();
-
-// Inicia o contador manual
-fetchNextRace();
 // Inicia o feed de notícias
 fetchF1News();
 
@@ -309,5 +313,6 @@ if (audio.muted) {
   iconOn.style.display = "none";
   iconOff.style.display = "block";
 }
+
 
 
