@@ -1,0 +1,137 @@
+.standingsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Duas colunas */
+  gap: 30px;
+
+  background-color: var(--bg-light-gray);
+  color: var(--text-dark);
+  max-width: 900px;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  margin: 40px auto; /* Adiciona espaço acima e abaixo */
+}
+
+.widget {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.widgetTitle {
+  color: var(--rb-red);
+  font-weight: 900;
+  text-transform: uppercase;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  margin: 0 0 15px 0;
+  font-size: 1.2em;
+}
+
+.podiumList,
+.standingsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.podiumList li,
+.standingsList li {
+  display: grid;
+  grid-template-columns: 30px 1fr auto auto; /* Posição | Nome | Equipe | Pontos */
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 0.95em;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.standingsList li {
+  /* Posição | Nome | Equipe | Pontos */
+  grid-template-columns: 30px 1fr 1fr auto;
+}
+
+.podiumList li:last-child,
+.standingsList li:last-child {
+  border-bottom: none;
+}
+
+.position {
+  font-size: 1.1em;
+  font-weight: 900;
+  color: var(--rb-blue);
+  text-align: center;
+}
+
+/* Cor especial para o pódio */
+.podiumList li:nth-child(1) .position {
+  color: #ffd700;
+} /* Ouro */
+.podiumList li:nth-child(2) .position {
+  color: #c0c0c0;
+} /* Prata */
+.podiumList li:nth-child(3) .position {
+  color: #cd7f32;
+} /* Bronze */
+
+.driverName {
+  font-weight: 400;
+}
+.driverName strong {
+  font-weight: 700;
+  color: #000;
+}
+
+.constructorName {
+  font-size: 0.85em;
+  color: #555;
+  font-style: italic;
+  justify-self: start; /* Alinha à esquerda */
+}
+
+.points {
+  font-size: 0.9em;
+  font-weight: 700;
+  color: var(--rb-blue);
+  background: #f4f4f4;
+  padding: 3px 6px;
+  border-radius: 4px;
+  justify-self: end; /* Alinha à direita */
+}
+
+.loading,
+.loadingError {
+  text-align: center;
+  font-size: 1.2em;
+  padding: 20px;
+  color: var(--text-dark);
+}
+
+.loadingError {
+  color: var(--rb-red);
+  font-weight: 700;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .standingsContainer {
+    grid-template-columns: 1fr; /* Coluna única */
+    width: 95%;
+  }
+}
+
+@media (max-width: 480px) {
+  .podiumList li,
+  .standingsList li {
+    grid-template-columns: 30px 1fr auto; /* Posição | Nome | Pontos */
+    gap: 5px;
+  }
+  .constructorName {
+    display: none; /* Esconde a equipe em telas muito pequenas */
+  }
+}
