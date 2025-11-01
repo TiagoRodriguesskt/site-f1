@@ -165,68 +165,99 @@ modalOverlay.addEventListener("click", (event) => {
   }
 });
 
-/* --- LÓGICA DA CONTAGEM REGRESSIVA (VERSÃO 2.0 - DADOS MANUAIS) --- */
-let countdownInterval = null;
+/* --- LÓGICA DA CONTAGEM REGRESSIVA (VERSÃO 3.0 - 100% AUTOMÁTICA) --- */
 
+let countdownInterval = null; // Variável para controlar o timer
+
+// 1. Função que busca a data da próxima corrida
 async function fetchNextRace() {
-  try {
-    // !! DADOS MANUAIS !!
-    // Data da corrida do Brasil (7 de Nov de 2025, 14:00 de Brasília = 17:00 UTC)
-    const raceName = "Grande Prêmio do Brasil";
-    const targetDateStr = "2025-11-07T17:00:00Z"; // (Formato: ANO-MÊS-DIAT[HORA]Z)
+    // API da Ergast (agora com HTTPS e sem proxy!)
+    const raceApiUrl = 'https://ergast.com/api/f1/current/next.json';
 
-    const targetDateTime = new Date(targetDateStr);
-    document.getElementById("race-name").textContent = raceName;
-    startCountdown(targetDateTime);
-  } catch (error) {
-    console.error("Erro ao iniciar o contador manual:", error);
-    document.getElementById("race-name").textContent = "Erro no contador!";
-  }
+    try {
+        // FAZEMOS O FETCH DIRETAMENTE NA API DE CORRIDAS
+        const response = await fetch(raceApiUrl); 
+
+        if (!response.ok) throw new Error('Não foi possível buscar o calendário de corridas.');
+
+        // A Ergast retorna JSON, então não precisamos converter de texto
+        const data = await response.json(); 
+
+        // Pega os dados da corrida
+        const raceInfo = data.MRData.RaceTable.Races[0];
+        if (!raceInfo) {
+            // Isso acontece se a temporada já acabou
+            throw new Error('Não há mais corridas nesta temporada.');
+        }
+
+        const raceName = raceInfo.raceName;
+        const raceDate = raceInfo.date; // Ex: "2025-11-09"
+        const raceTime = raceInfo.time; // Ex: "17:00:00Z" (Formato UTC/Zulu)
+
+        // Combina data e hora e cria um objeto Date
+        const targetDateTime = new Date(`${raceDate}T${raceTime}`);
+
+        // Atualiza o nome da corrida no HTML
+        document.getElementById('race-name').textContent = raceName;
+
+        // Inicia o contador!
+        startCountdown(targetDateTime);
+
+    } catch (error) {
+        console.error('Erro ao buscar próxima corrida:', error);
+
+        // SE A TEMPORADA TIVER ACABADO, VAI MOSTRAR ISSO:
+        document.getElementById('race-name').textContent = 'Temporada Concluída!';
+        document.getElementById('countdown').innerHTML = ''; // Limpa os "00 00 00 00"
+    }
 }
 
+// 2. Função que atualiza o contador a cada segundo
 function startCountdown(targetDate) {
-  if (countdownInterval) {
-    clearInterval(countdownInterval);
-  }
-  const countdownEl = document.getElementById("countdown");
-  const daysEl = document.getElementById("days");
-  const hoursEl = document.getElementById("hours");
-  const minutesEl = document.getElementById("minutes");
-  const secondsEl = document.getElementById("seconds");
-  const titleEl = document.getElementById("countdown-title");
-
-  updateTime(); // Chama uma vez imediatamente
-  countdownInterval = setInterval(updateTime, 1000);
-
-  function updateTime() {
-    const now = new Date().getTime();
-    const distance = targetDate.getTime() - now;
-
-    if (distance < 0) {
-      clearInterval(countdownInterval);
-      titleEl.textContent = "A CORRIDA ESTÁ ACONTECENDO!";
-      countdownEl.innerHTML =
-        '<p style="font-size: 1.2em; color: var(--rb-red); font-weight: 700;">É HORA DAS LUZES SE APAGAREM!</p>';
-      return;
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
     }
 
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(
-      (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    const countdownEl = document.getElementById('countdown');
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    const titleEl = document.getElementById('countdown-title');
 
-    daysEl.textContent = formatTime(days);
-    hoursEl.textContent = formatTime(hours);
-    minutesEl.textContent = formatTime(minutes);
-    secondsEl.textContent = formatTime(seconds);
-  }
+    updateTime(); // Chama uma vez imediatamente
+    countdownInterval = setInterval(updateTime, 1000); 
+
+    function updateTime() {
+        const now = new Date().getTime();
+        const distance = targetDate.getTime() - now;
+
+        if (distance < 0) {
+            clearInterval(countdownInterval);
+            titleEl.textContent = 'A CORRIDA ESTÁ ACONTECENDO!';
+            countdownEl.innerHTML = '<p style="font-size: 1.2em; color: var(--rb-red); font-weight: 700;">É HORA DAS LUZES SE APAGAREM!</p>';
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        daysEl.textContent = formatTime(days);
+        hoursEl.textContent = formatTime(hours);
+        minutesEl.textContent = formatTime(minutes);
+        secondsEl.textContent = formatTime(seconds);
+    }
 }
 
+// 3. Função auxiliar para adicionar um '0' (ex: 9 -> 09)
 function formatTime(time) {
-  return time < 10 ? `0${time}` : time;
+    return time < 10 ? `0${time}` : time;
 }
+
+// 4. Inicia tudo!
+fetchNextRace();
 
 // Inicia o contador manual
 fetchNextRace();
@@ -277,3 +308,4 @@ if (audio.muted) {
   iconOn.style.display = "none";
   iconOff.style.display = "block";
 }
+
