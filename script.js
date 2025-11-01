@@ -161,38 +161,22 @@ modalOverlay.addEventListener('click', (event) => {
 });
 
 
-/* --- LÓGICA DA CONTAGEM REGRESSIVA (VERSÃO 4.0 - AUTOMÁTICA CORRETA) --- */
+/* --- LÓGICA DA CONTAGEM REGRESSIVA (VERSÃO FINAL - MANUAL/SEGURA) --- */
 
 let countdownInterval = null; // Variável para controlar o timer
 
-// 1. Função que busca a data da próxima corrida
-async function fetchNextRace() {
-    
-    // API da Ergast (agora com HTTPS e apontando para 2025)
-    // ESTA É A CORREÇÃO FINAL
-    const raceApiUrl = 'https://ergast.com/api/f1/2025/next.json';
+// 1. Função que usa os dados manuais
+function startManualCountdown() {
     
     try {
-        // FAZEMOS O FETCH DIRETAMENTE NA API DE CORRIDAS
-        const response = await fetch(raceApiUrl); 
+        // !! DADOS MANUAIS PARA A PRÓXIMA CORRIDA (GP BRASIL 2025) !!
         
-        if (!response.ok) throw new Error('Não foi possível buscar o calendário de corridas.');
+        const raceName = "Grande Prêmio do Brasil";
+        // A data é 7 de Nov de 2025. 
+        // Vamos assumir 14:00 de Brasília, que é 17:00 UTC (GMT/Zulu)
+        const targetDateStr = "2025-11-07T17:00:00Z"; // (Formato: ANO-MÊS-DIAT[HORA]Z)
         
-        const data = await response.json(); 
-
-        // Pega os dados da corrida
-        const raceInfo = data.MRData.RaceTable.Races[0];
-        if (!raceInfo) {
-            // Se a temporada de 2025 realmente tiver acabado
-            throw new Error('Não há mais corridas nesta temporada.');
-        }
-
-        const raceName = raceInfo.raceName;
-        const raceDate = raceInfo.date; // Ex: "2025-11-07"
-        const raceTime = raceInfo.time; // Ex: "17:00:00Z" (Formato UTC/Zulu)
-
-        // Combina data e hora e cria um objeto Date
-        const targetDateTime = new Date(`${raceDate}T${raceTime}`);
+        const targetDateTime = new Date(targetDateStr);
         
         // Atualiza o nome da corrida no HTML
         document.getElementById('race-name').textContent = raceName;
@@ -201,11 +185,8 @@ async function fetchNextRace() {
         startCountdown(targetDateTime);
 
     } catch (error) {
-        console.error('Erro ao buscar próxima corrida:', error);
-        
-        // SE A TEMPORADA TIVER ACABADO, VAI MOSTRAR ISSO:
-        document.getElementById('race-name').textContent = 'Temporada Concluída!';
-        document.getElementById('countdown').innerHTML = ''; // Limpa os "00 00 00 00"
+        console.error('Erro ao iniciar o contador manual:', error);
+        document.getElementById('race-name').textContent = 'Erro no contador!';
     }
 }
 
@@ -231,7 +212,7 @@ function startCountdown(targetDate) {
 
         if (distance < 0) {
             clearInterval(countdownInterval);
-            titleEl.textContent = 'A CORRIDA ESTÁ ACONTECANDO!';
+            titleEl.textContent = 'A CORRIDA ESTÁ ACONTECENDO!';
             countdownEl.innerHTML = '<p style="font-size: 1.2em; color: var(--rb-red); font-weight: 700;">É HORA DAS LUZES SE APAGAREM!</p>';
             return;
         }
@@ -254,7 +235,9 @@ function formatTime(time) {
 }
 
 // 4. Inicia tudo!
-fetchNextRace(); // Inicia o contador
+// (O script de notícias 'fetchF1News()' já é chamado em outro lugar,
+// então só precisamos iniciar o contador manual)
+startManualCountdown();
 fetchF1News();  // Inicia o feed de notícias
 
 
@@ -299,3 +282,4 @@ if (audio.muted) {
     iconOn.style.display = 'none';
     iconOff.style.display = 'block';
 }
+
