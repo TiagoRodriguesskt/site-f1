@@ -1,0 +1,540 @@
+/* --- DEFINIÇÕES GLOBAIS E CORES DA RED BULL --- */
+:root {
+   --rb-blue: #060029;
+   --rb-red: #da0000;
+   --rb-yellow: #ffc900;
+   --bg-light-gray: #f4f4f4;
+   --text-dark: #222222;
+   --text-light: #ffffff;
+}
+* {
+   box-sizing: border-box;
+}
+body {
+   font-family: 'Roboto', 'Arial', sans-serif;
+   margin: 0;
+   background-color: var(--rb-blue);
+   color: var(--text-light);
+   line-height: 1.6;
+   position: relative;
+   overflow-x: hidden;
+}
+/* A MÁGICA DO FUNDO EMBAÇADO (BLUR) */
+body::before {
+   content: '';
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   z-index: -1;
+   background-image: url('img/body_background.jpg'); /* ATENÇÃO: Verifique se este é o nome da sua imagem na pasta 'img' */
+   background-size: cover;
+   background-position: center;
+   filter: blur(8px);
+   transform: scale(1.05);
+}
+
+/* --- CABEÇALHO (COM IMAGEM EMBAÇADA DE FUNDO) --- */
+.main-header {
+   background-color: var(--rb-blue);
+   padding: 20px 30px;
+   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
+   text-align: center;
+   position: sticky;
+   top: 0;
+   z-index: 1000;
+   border-bottom: 5px solid var(--rb-red);
+   box-shadow: 0 0 15px var(--rb-red);
+   animation: headerBorderPulse 3s infinite alternate;
+   position: relative;
+   overflow: hidden;  
+}
+.main-header::before {
+   content: '';
+   position: absolute;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   z-index: -1;
+   background-image: url('img/header_background.jpg'); /* ATENÇÃO: Verifique se este é o nome da sua imagem na pasta 'img' */
+   background-size: cover;      
+   background-position: center;  
+   background-repeat: no-repeat;
+   filter: blur(5px);
+   transform: scale(1.05);
+   background-blend-mode: overlay;
+   background-color: rgba(0, 0, 0, 0.6);
+}
+@keyframes headerBorderPulse {
+   0% { box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6), 0 0 5px var(--rb-red); }
+   100% { box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6), 0 0 15px var(--rb-yellow); }
+}
+.logo-container {
+   max-width: 1100px;
+   margin: 0 auto;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 20px;
+   position: relative;
+   z-index: 1;
+}
+.redbull-logo {
+   height: 55px;
+   animation: pulseLogo 2s infinite ease-in-out;
+}
+@keyframes pulseLogo {
+   0% { transform: scale(1); }
+   50% { transform: scale(1.08); }
+   100% { transform: scale(1); }
+}
+.main-header h1 {
+   margin: 0;
+   font-size: 2.5em;
+   font-weight: 900;
+   color: var(--text-light);
+   text-transform: uppercase;
+   letter-spacing: 3px;
+   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+   animation: textFlicker 4s infinite alternate;
+   position: relative;
+   z-index: 1;
+}
+@keyframes textFlicker {
+   0%, 100% { text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8); opacity: 1; }
+   50% { text-shadow: 3px 3px 10px rgba(var(--rb-red), 0.7); opacity: 0.9; }
+}
+
+/* --- EFEITO PARALLAX (EMBAÇADO) --- */
+.parallax {
+   background-image: url('img/f1_background.jpg'); /* ATENÇÃO: Verifique se este é o nome da sua imagem na pasta 'img' */
+   min-height: 450px;
+   background-attachment: fixed;
+   background-position: center;
+   background-repeat: no-repeat;
+   background-size: cover;
+   position: relative;
+   z-index: 2;
+   border-bottom: 5px solid var(--rb-red);
+   filter: blur(4px);
+   transform: scale(1.02);
+}
+/* --- ESTILOS DA CONTAGEM REGRESSIVA --- */
+.countdown-container {
+   max-width: 900px;
+   width: 90%;
+   margin: -60px auto 30px auto;
+   position: relative;
+   z-index: 3;
+   background: linear-gradient(135deg, rgba(6, 0, 41, 0.9), rgba(0,0,0,0.85));
+   backdrop-filter: blur(5px);
+   padding: 25px 30px;
+   border-radius: 12px;
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+   border-top: 4px solid var(--rb-yellow);
+   text-align: center;
+}
+#countdown-title {
+   font-size: 1.8em;
+   font-weight: 700;
+   color: var(--text-light);
+   margin: 0 0 20px 0;
+   text-transform: uppercase;
+}
+#countdown-title #race-name {
+   color: var(--rb-yellow);
+   display: block;
+   font-size: 0.9em;
+   margin-top: 5px;
+}
+#countdown {
+   display: flex;
+   justify-content: center;
+   gap: 20px;
+}
+#countdown div {
+   display: flex;
+   flex-direction: column;
+   background: rgba(0,0,0,0.2);
+   padding: 15px 20px;
+   border-radius: 8px;
+   min-width: 80px;
+}
+.time-number {
+   font-size: 3em;
+   font-weight: 900;
+   color: var(--text-light);
+   line-height: 1.1;
+}
+.time-label {
+   font-size: 0.8em;
+   color: #aaa;
+   text-transform: uppercase;
+   font-weight: 700;
+}
+
+/* --- CONTEÚDO FLUTUANTE (NOTÍCIAS) --- */
+.content-wrapper {
+   background-color: var(--bg-light-gray);
+   color: var(--text-dark);
+   max-width: 900px;
+   padding: 30px 40px;
+   border-radius: 12px;
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+   position: relative;
+   z-index: 2;
+   width: 90%;
+   margin: 0 auto 40px auto; /* Margin-top foi movida para o countdown */
+}
+.noticia-item {
+   border-bottom: 2px solid #ddd;
+   padding: 25px 10px;
+   transition: background-color 0.3s ease;
+}
+.noticia-item:last-child {
+   border-bottom: none;
+}
+.noticia-item:hover {
+   background-color: #ffffff;
+   border-radius: 8px;
+}
+.noticia-item h2 {
+   margin: 0 0 8px 0;
+   font-size: 1.7em;
+   font-weight: 700;
+}
+.noticia-item p {
+   margin: 0;
+   font-size: 1.05em;
+   color: #444;
+}
+.loading {
+   text-align: center;
+   font-size: 1.3em;
+   color: var(--text-dark);
+   padding: 30px 0;
+   font-weight: 700;
+}
+
+/* --- ESTILOS DA PONTUAÇÃO (STANDINGS) --- */
+.standings-container {
+   display: grid;
+   grid-template-columns: 1fr 1fr; /* Duas colunas */
+   gap: 30px;
+   background-color: var(--bg-light-gray);
+   color: var(--text-dark);
+   max-width: 900px;
+   padding: 30px 40px;
+   border-radius: 12px;
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+   position: relative;
+   z-index: 2;
+   width: 90%;
+   margin: 40px auto; /* Espaço acima e abaixo */
+}
+.widget {
+   background: #ffffff;
+   border-radius: 8px;
+   padding: 20px;
+   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.widgetTitle {
+   color: var(--rb-red);
+   font-weight: 900;
+   text-transform: uppercase;
+   border-bottom: 2px solid #eee;
+   padding-bottom: 10px;
+   margin: 0 0 15px 0;
+   font-size: 1.2em;
+}
+.podiumList,
+.standingsList {
+   list-style: none;
+   padding: 0;
+   margin: 0;
+}
+.podiumList li,
+.standingsList li {
+   display: grid;
+   /* Posição | Nome | Equipe */
+   grid-template-columns: 30px 1fr 1fr;
+   gap: 10px;
+   align-items: center;
+   padding: 12px 0;
+   font-size: 0.95em;
+   border-bottom: 1px solid #f0f0f0;
+}
+.standingsList li {
+    /* Posição | Nome | Equipe | Pontos */
+   grid-template-columns: 30px 1fr 1fr auto;
+}
+.podiumList li:last-child,
+.standingsList li:last-child {
+   border-bottom: none;
+}
+.position {
+   font-size: 1.1em;
+   font-weight: 900;
+   color: var(--rb-blue);
+   text-align: center;
+}
+/* Cor especial para o pódio */
+.podiumList li:nth-child(1) .position { color: #FFD700; } /* Ouro */
+.podiumList li:nth-child(2) .position { color: #C0C0C0; } /* Prata */
+.podiumList li:nth-child(3) .position { color: #CD7F32; } /* Bronze */
+.driverName {
+   font-weight: 400;
+}
+.driverName strong {
+   font-weight: 700;
+   color: #000;
+}
+.constructorName {
+   font-size: 0.85em;
+   color: #555;
+   font-style: italic;
+   justify-self: start; /* Alinha à esquerda */
+}
+.points {
+   font-size: 0.9em;
+   font-weight: 700;
+   color: var(--rb-blue);
+   background: #f4f4f4;
+   padding: 3px 6px;
+   border-radius: 4px;
+   justify-self: end; /* Alinha à direita */
+}
+.loading-standings,
+.loading-error-standings {
+   text-align: center;
+   font-size: 1.2em;
+   padding: 20px;
+   color: var(--text-dark);
+   font-weight: 700;
+   /* Faz o erro ocupar as duas colunas */
+   grid-column: 1 / -1;
+}
+.loading-error-standings {
+   color: var(--rb-red);
+}
+
+/* --- ESTILOS DO MODAL DE NOTÍCIAS --- */
+.modal-overlay {
+   display: none;
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background: rgba(0, 0, 0, 0.85);
+   z-index: 2000;
+   justify-content: center;
+   align-items: center;
+   padding: 20px;
+   overflow-y: auto;
+}
+.modal-overlay.active {
+   display: flex;
+}
+.modal-content {
+   background: #ffffff;
+   color: var(--text-dark);
+   border-radius: 12px;
+   padding: 30px;
+   max-width: 800px;
+   width: 100%;
+   box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+   position: relative;
+   transform: scale(0.9);
+   opacity: 0;
+   transition: all 0.3s ease-out;
+}
+.modal-overlay.active .modal-content {
+   transform: scale(1);
+   opacity: 1;
+}
+.modal-close {
+   position: absolute;
+   top: 10px;
+   right: 20px;
+   font-size: 2.5em;
+   color: #aaa;
+   background: none;
+   border: none;
+   cursor: pointer;
+   transition: color 0.2s;
+}
+.modal-close:hover {
+   color: var(--rb-red);
+}
+#modal-image {
+   width: 100%;
+   height: auto;
+   max-height: 400px;
+   object-fit: cover;
+   border-radius: 8px;
+   margin-bottom: 20px;
+   border: 1px solid #eee;
+}
+#modal-title {
+   color: var(--rb-blue);
+   font-size: 2em;
+   margin: 0 0 15px 0;
+}
+#modal-text {
+   font-size: 1.1em;
+   line-height: 1.7;
+   margin-bottom: 25px;
+}
+.modal-article-body {
+   font-size: 1.1em;
+   line-height: 1.7;
+   margin-bottom: 25px;
+   max-height: 300px; /* Limita a altura do texto */
+   overflow-y: auto; /* Adiciona scroll se o texto for grande */
+}
+.modal-article-body p {
+   margin-bottom: 1.5em; /* Espaçamento entre parágrafos */
+}
+.modal-article-body img { /* Imagens dentro da matéria */
+   max-width: 100%;
+   height: auto;
+   border-radius: 8px;
+}
+.modal-read-more {
+   display: inline-block;
+   background-color: var(--rb-red);
+   color: var(--text-light) !important;
+   padding: 12px 25px;
+   border-radius: 5px;
+   text-decoration: none;
+   font-weight: bold;
+   transition: all 0.3s ease;
+}
+.modal-read-more:hover {
+   background-color: var(--rb-blue);
+   transform: translateY(-2px);
+   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+/* Títulos da lista clicáveis */
+.noticia-item a {
+   text-decoration: none;
+   color: inherit;
+}
+.noticia-item a:hover {
+   color: inherit;
+   letter-spacing: 0;
+}
+.noticia-item h2.clickable-title {
+   cursor: pointer;
+   color: var(--rb-blue);
+   transition: color 0.2s ease, letter-spacing 0.2s ease;
+}
+.noticia-item h2.clickable-title:hover {
+   color: var(--rb-red);
+   letter-spacing: 0.5px;
+}
+
+/* --- RODAPÉ --- */
+.main-footer {
+   text-align: center;
+   padding: 30px 0;
+   color: #aaa;
+   font-size: 0.9em;
+   background:
+       linear-gradient(rgba(6, 0, 41, 0.9), rgba(6, 0, 41, 0.95)),
+       url('img/body_background.jpg'); /* ATENÇÃO: Verifique o nome da imagem */
+   background-size: cover;
+   background-position: center;
+   border-top: 1px solid #334;
+   position: relative;
+   z-index: 2;
+}
+/* --- ESTILOS DO BOTÃO DE MUDO --- */
+.mute-button {
+   position: fixed;
+   bottom: 25px;    
+   right: 25px;    
+   z-index: 1001;  
+   background-color: var(--rb-yellow);
+   color: var(--rb-blue);
+   border: 2px solid var(--rb-blue);
+   width: 50px;
+   height: 50px;
+   border-radius: 50%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   cursor: pointer;
+   transition: all 0.3s ease;
+}
+.mute-button:hover {
+   transform: scale(1.1);
+   background-color: var(--rb-red);
+   color: var(--text-light);
+   border: 2px solid var(--text-light);
+}
+.mute-button svg {
+   width: 24px;
+   height: 24px;
+}
+/* --- RESPONSIVIDADE GERAL --- */
+@media (max-width: 768px) {
+   .main-header h1 {
+       font-size: 1.5em;
+   }
+   .redbull-logo {
+       height: 35px;
+   }
+   .parallax {
+       min-height: 250px;
+       background-attachment: scroll;
+   }
+   .countdown-container {
+       margin: -40px auto 30px auto;
+       width: 95%;
+   }
+   .content-wrapper {
+       width: 95%;
+       padding: 20px;
+   }
+   .standings-container {
+       grid-template-columns: 1fr; /* Coluna única */
+       width: 95%;
+   }
+   .noticia-item h2 {
+       font-size: 1.3em;
+   }
+   #modal-title {
+       font-size: 1.5em;
+   }
+}
+@media (max-width: 480px) {
+   .main-header h1 {
+       font-size: 1.4em;
+   }
+   .logo-container {
+       flex-direction: column;
+       gap: 8px;
+   }
+   #countdown {
+       gap: 10px;
+   }
+   #countdown div {
+       padding: 10px;
+       min-width: 60px;
+   }
+   .time-number {
+       font-size: 2em;
+   }
+   .podiumList li,
+   .standingsList li {
+       grid-template-columns: 30px 1fr auto; /* Posição | Nome | Pontos */
+       gap: 5px;
+   }
+   .constructorName {
+       display: none; /* Esconde a equipe em telas muito pequenas */
+   }
+}
